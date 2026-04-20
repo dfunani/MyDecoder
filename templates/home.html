@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ .Title }} — Encode &amp; Decode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #0c0f14;
+      --bg1: #121826;
+      --surface: rgba(22, 28, 42, 0.72);
+      --border: rgba(120, 140, 180, 0.18);
+      --text: #e8ecf4;
+      --muted: #8b95ab;
+      --accent: #5eead4;
+      --accent-dim: rgba(94, 234, 212, 0.14);
+      --danger: #fb7185;
+      --radius: 14px;
+      --shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Outfit", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(94, 234, 212, 0.12), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(129, 140, 248, 0.15), transparent 50%),
+        linear-gradient(165deg, var(--bg0), var(--bg1));
+      background-attachment: fixed;
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 3rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-weight: 700;
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      letter-spacing: -0.03em;
+      margin: 0 0 0.5rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-weight: 400;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(94, 234, 212, 0.35);
+      margin-bottom: 0.75rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.35rem;
+      background: rgba(10, 12, 18, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      width: fit-content;
+      margin: 0 auto 1.75rem;
+    }
+
+    .tabs button {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 0.55rem 1.35rem;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--muted);
+      background: transparent;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .tabs button:hover {
+      color: var(--text);
+    }
+
+    .tabs button.active {
+      color: #0c0f14;
+      background: var(--accent);
+    }
+
+    .panel {
+      display: none;
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .panel.active {
+      display: block;
+      animation: fade 0.35s ease;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+      letter-spacing: 0.02em;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      resize: vertical;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.85rem;
+      line-height: 1.55;
+      padding: 1rem 1.1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(8, 10, 16, 0.65);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus {
+      border-color: rgba(94, 234, 212, 0.45);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    textarea::placeholder {
+      color: #5c6578;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.92rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #5eead4, #2dd4bf);
+      color: #0c0f14;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.06);
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .alert {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-error {
+      background: rgba(251, 113, 133, 0.12);
+      border: 1px solid rgba(251, 113, 133, 0.35);
+      color: #fecdd3;
+    }
+
+    .stack {
+      margin-top: 1.25rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="badge">Base64 · JSON</div>
+      <h1>{{ .Title }}</h1>
+      <p>{{ .Tagline }}</p>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="{{ if eq .ActiveTab "encode" }}active{{ end }}" data-tab="encode" role="tab" aria-selected="{{ if eq .ActiveTab "encode" }}true{{ else }}false{{ end }}">Encode</button>
+      <button type="button" class="{{ if eq .ActiveTab "decode" }}active{{ end }}" data-tab="decode" role="tab" aria-selected="{{ if eq .ActiveTab "decode" }}true{{ else }}false{{ end }}">Decode</button>
+    </div>
+
+    <section id="panel-encode" class="panel{{ if eq .ActiveTab "encode" }} active{{ end }}" role="tabpanel"{{ if ne .ActiveTab "encode" }} hidden{{ end }}>
+      <label for="encode-in">JSON object (this becomes the <code>data</code> payload)</label>
+      <textarea id="encode-in" spellcheck="false" placeholder='{ "user": "alex", "score": 42 }'></textarea>
+      <div class="row">
+        <button type="button" class="btn btn-primary" id="btn-encode">Encode to Base64</button>
+      </div>
+      <div id="encode-alert" class="alert alert-error"></div>
+      <div class="stack">
+        <label for="encode-out">Encoded message</label>
+        <textarea id="encode-out" spellcheck="false" readonly placeholder="Result appears here…"></textarea>
+        <div class="row">
+          <button type="button" class="btn btn-ghost" id="copy-encode" disabled>Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-decode" class="panel{{ if eq .ActiveTab "decode" }} active{{ end }}" role="tabpanel"{{ if ne .ActiveTab "decode" }} hidden{{ end }}>
+      <label for="decode-in">Base64 message</label>
+      <textarea id="decode-in" spellcheck="false" placeholder="Paste the encoded string…"></textarea>
+      <div class="row">
+        <button type="button" class="btn btn-primary" id="btn-decode">Decode to JSON</button>
+      </div>
+      <div id="decode-alert" class="alert alert-error"></div>
+      <div class="stack">
+        <label for="decode-out">Decoded data</label>
+        <textarea id="decode-out" spellcheck="false" readonly placeholder="Pretty-printed JSON appears here…"></textarea>
+        <div class="row">
+          <button type="button" class="btn btn-ghost" id="copy-decode" disabled>Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>Tabs use <code>{{ .PagesBase }}/encode</code> and <code>{{ .PagesBase }}/decode</code> — API at <code>/api/</code> while <code>go run .</code> listens on <code>:8080</code>.</footer>
+  </div>
+
+  <script>
+    (function () {
+      var pagesBase = "{{ .PagesBase }}".replace(/\/$/, "");
+      var tabs = document.querySelectorAll(".tabs button");
+      var encodePanel = document.getElementById("panel-encode");
+      var decodePanel = document.getElementById("panel-decode");
+
+      function tabFromPath() {
+        var p = window.location.pathname.replace(/\/$/, "");
+        if (p === pagesBase + "/decode") return "decode";
+        return "encode";
+      }
+
+      function pathForTab(name) {
+        return pagesBase + "/" + name;
+      }
+
+      function setTabUI(name) {
+        tabs.forEach(function (b) {
+          var on = b.getAttribute("data-tab") === name;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        encodePanel.classList.toggle("active", name === "encode");
+        decodePanel.classList.toggle("active", name === "decode");
+        encodePanel.hidden = name !== "encode";
+        decodePanel.hidden = name !== "decode";
+      }
+
+      function navigateToTab(name) {
+        var cur = tabFromPath();
+        setTabUI(name);
+        if (window.history && window.history.pushState && cur !== name) {
+          window.history.pushState({ tab: name }, "", pathForTab(name));
+        }
+      }
+
+      tabs.forEach(function (b) {
+        b.addEventListener("click", function () {
+          navigateToTab(b.getAttribute("data-tab"));
+        });
+      });
+
+      window.addEventListener("popstate", function () {
+        setTabUI(tabFromPath());
+      });
+
+      setTabUI(tabFromPath());
+
+      function showAlert(id, msg) {
+        var el = document.getElementById(id);
+        if (!msg) {
+          el.textContent = "";
+          el.classList.remove("show");
+          return;
+        }
+        el.textContent = msg;
+        el.classList.add("show");
+      }
+
+      function copyText(btn, text) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function () {
+          var prev = btn.textContent;
+          btn.textContent = "Copied!";
+          setTimeout(function () { btn.textContent = prev; }, 1600);
+        });
+      }
+
+      document.getElementById("btn-encode").addEventListener("click", function () {
+        showAlert("encode-alert", "");
+        var raw = document.getElementById("encode-in").value.trim();
+        var obj;
+        try {
+          obj = JSON.parse(raw);
+        } catch (e) {
+          showAlert("encode-alert", "Invalid JSON: " + e.message);
+          return;
+        }
+        if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
+          showAlert("encode-alert", "Please enter a JSON object (not an array or primitive).");
+          return;
+        }
+        fetch("/api/encode", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: obj }),
+        })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (_ref) {
+            if (!_ref.ok) {
+              showAlert("encode-alert", _ref.j.error || "Request failed");
+              document.getElementById("encode-out").value = "";
+              document.getElementById("copy-encode").disabled = true;
+              return;
+            }
+            document.getElementById("encode-out").value = _ref.j.message || "";
+            document.getElementById("copy-encode").disabled = !(_ref.j.message);
+          })
+          .catch(function (e) {
+            showAlert("encode-alert", e.message || "Network error");
+          });
+      });
+
+      document.getElementById("btn-decode").addEventListener("click", function () {
+        showAlert("decode-alert", "");
+        var msg = document.getElementById("decode-in").value.trim();
+        if (!msg) {
+          showAlert("decode-alert", "Paste a base64 message first.");
+          return;
+        }
+        fetch("/api/decode", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msg }),
+        })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (_ref2) {
+            if (!_ref2.ok) {
+              showAlert("decode-alert", _ref2.j.error || "Request failed");
+              document.getElementById("decode-out").value = "";
+              document.getElementById("copy-decode").disabled = true;
+              return;
+            }
+            try {
+              document.getElementById("decode-out").value = JSON.stringify(_ref2.j.data, null, 2);
+            } catch (e) {
+              document.getElementById("decode-out").value = String(_ref2.j.data);
+            }
+            document.getElementById("copy-decode").disabled = false;
+          })
+          .catch(function (e) {
+            showAlert("decode-alert", e.message || "Network error");
+          });
+      });
+
+      document.getElementById("copy-encode").addEventListener("click", function () {
+        copyText(this, document.getElementById("encode-out").value);
+      });
+      document.getElementById("copy-decode").addEventListener("click", function () {
+        copyText(this, document.getElementById("decode-out").value);
+      });
+    })();
+  </script>
+</body>
+</html>
