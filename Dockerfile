@@ -21,6 +21,8 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,source=go.mod,target=go.mod \
     go mod download -x
 
+COPY templates /src/templates
+
 # This is the architecture you're building for, which is passed in by the builder.
 # Placing it here allows the previous steps to be cached across architectures.
 ARG TARGETARCH
@@ -66,13 +68,21 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
-USER appuser
+
+WORKDIR /app
+
+# HTML templates are loaded at runtime (not embedded in the binary).
+COPY templates /app/templates
 
 # Copy the executable from the "build" stage.
-COPY --from=build /bin/server /bin/
+COPY --from=build /bin/server /app/server
+
+RUN chown -R appuser:appuser /app
+
+USER appuser
 
 # Expose the port that the application listens on.
 EXPOSE 8080
 
 # What the container should run when it is started.
-ENTRYPOINT [ "/bin/server" ]
+ENTRYPOINT [ "/app/server" ]
