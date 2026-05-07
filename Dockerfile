@@ -14,28 +14,18 @@ ARG GO_VERSION=1.25.1
 FROM golang:${GO_VERSION} AS build
 WORKDIR /src
 
-# Download dependencies as a separate step to take advantage of Docker's caching.
-# Leverage a cache mount to /go/pkg/mod/ to speed up subsequent builds.
-# Leverage bind mounts to go.sum and go.mod to avoid having to copy them into
-# the container.
-RUN --mount=type=cache,target=/go/pkg/mod/ \
-    --mount=type=bind,source=go.sum,target=go.sum \
-    --mount=type=bind,source=go.mod,target=go.mod \
-    go mod download -x
+# Download dependencies as a separate step to take advantage of layer caching.
+COPY go.mod go.sum ./
+RUN go mod download -x
 
-COPY templates /src/templates
+COPY . .
 
 # Architecture for the Go binary; BuildKit sets TARGETARCH for multi-platform builds.
 # Default matches typical Linux amd64 deploy targets when the builder leaves it unset.
 ARG TARGETARCH=amd64
 
 # Build the application.
-# Leverage a cache mount to /go/pkg/mod/ to speed up subsequent builds.
-# Leverage a bind mount to the current directory to avoid having to copy the
-# source code into the container.
-RUN --mount=type=cache,target=/go/pkg/mod/ \
-    --mount=type=bind,target=. \
-    CGO_ENABLED=0 GOARCH=$TARGETARCH go build -o /bin/server .
+RUN CGO_ENABLED=0 GOARCH=$TARGETARCH go build -o /bin/server .
 
 ################################################################################
 # Create a new stage for running the application that contains the minimal
@@ -50,10 +40,8 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 # (e.g., alpine:3.17.2) or SHA (e.g., alpine@sha256:c41ab5c992deb4fe7e5da09f67a8804a46bd0592bfdf0b1847dde0e0889d2bff).
 FROM alpine:latest AS final
 
-# Install any runtime dependencies that are needed to run your application.
-# Leverage a cache mount to /var/cache/apk/ to speed up subsequent builds.
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk --update add \
+# Install runtime dependencies needed to run the application.
+RUN apk --update add \
         ca-certificates \
         tzdata \
         && \
