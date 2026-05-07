@@ -20,11 +20,8 @@ RUN go mod download -x
 
 COPY . .
 
-# Architecture for the Go binary; BuildKit sets TARGETARCH for multi-platform builds.
-# Default matches typical Linux amd64 deploy targets when the builder leaves it unset.
-ARG TARGETARCH=amd64
-
-# Build the application.
+# Build an ARM64 binary to match the aarch64 runtime VM.
+ARG TARGETARCH=arm64
 RUN CGO_ENABLED=0 GOARCH=$TARGETARCH go build -o /bin/server .
 
 ################################################################################
