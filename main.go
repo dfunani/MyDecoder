@@ -14,7 +14,7 @@ func main() {
 	client := gin.Default()
 	client.LoadHTMLGlob("templates/*")
 
-	client.GET("/pages", func(c *gin.Context) {
+	client.GET("", func(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/pages/encode")
 	})
 
