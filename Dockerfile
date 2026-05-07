@@ -69,7 +69,7 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Expose the port that the application listens on.
-EXPOSE 8080
+EXPOSE 80
 
 # What the container should run when it is started.
 ENTRYPOINT [ "/app/server" ]

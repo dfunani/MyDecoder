@@ -23,5 +23,5 @@ func main() {
 	routes.ApiRoutes(apis)
 	routes.PageRoutes(static)
 
-	client.Run(":8080")
+	client.Run(":80")
 }
