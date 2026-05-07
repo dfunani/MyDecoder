@@ -9,7 +9,9 @@
 ################################################################################
 # Create a stage for building the application.
 ARG GO_VERSION=1.25.1
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
+# Omit --platform=$BUILDPLATFORM: many hosts (e.g. CapRover) do not set BUILDPLATFORM,
+# which yields --platform= and breaks the parser. Default platform is the builder's.
+FROM golang:${GO_VERSION} AS build
 WORKDIR /src
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
@@ -23,9 +25,9 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 
 COPY templates /src/templates
 
-# This is the architecture you're building for, which is passed in by the builder.
-# Placing it here allows the previous steps to be cached across architectures.
-ARG TARGETARCH
+# Architecture for the Go binary; BuildKit sets TARGETARCH for multi-platform builds.
+# Default matches typical Linux amd64 deploy targets when the builder leaves it unset.
+ARG TARGETARCH=amd64
 
 # Build the application.
 # Leverage a cache mount to /go/pkg/mod/ to speed up subsequent builds.
