@@ -38,7 +38,7 @@ func HandleDecodeMessage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var decoded_data map[string]any
+	var decoded_data any
 	err = json.Unmarshal(decoded, &decoded_data)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
